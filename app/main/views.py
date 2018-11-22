@@ -1,88 +1,120 @@
 from flask import render_template,request,redirect,url_for,abort
 from . import main
-from .forms import CommentForm,PitchForm
+from .forms import PostForm, CommentForm, UpdateProfile, SubscribeForm
+from ..models import User, Post, Comment, Subscriber
 from flask_login import login_required, current_user
-from .. import auth
-from ..models import User,Pitch,Comment
-from .forms import UpdateProfile
-from .. import db,photos
-import markdown2  
+from .. import db, photos
+from .. email import mail_message
 
 
-
-#views
 @main.route('/')
 def index():
-    '''
-    View root page function that returns index page and its data
-    '''
-    title = 'YOU CAN PITCH NOW'
+  
+  title = 'Home - Welcome to Peach Blog'
+  posts = Post.get_posts()
 
-    index=Pitch.query.all()
+  return render_template('index.html', title = title, posts = posts)
 
-    return render_template('index.html', title = title, index = index)   
 
-@main.route('/new_pitch', methods = ['GET','POST'])
+@main.route('/post/new', methods = ['GET','POST']) 
 @login_required
-def new_pitch():   
-    form = PitchForm() 
+def new_post():
+  form = PostForm()
+
+  if form.validate_on_submit():
+    title = form.title.data
+    post = form.post.data
+    new_post = Post(post_title = title, post_text = post, user=current_user )
+    new_post.save_post()
+
+    users = Subscriber.query.all()
+    for user in users:
+        print(user.email)
+        mail_message("New Post on Peach Blog","email/sub_alert",user.email,user=user)  
+
+    return redirect(url_for('.index'))
+
+  title = 'New Post'
+  return render_template('new_posts.html', title= title, form= form)
+
+
+@main.route('/post/comments/new/<int:id>', methods = ['GET', 'POST'])
+def new_comment(id):
+  form = CommentForm()
+  print(id)
+
+  if form.validate_on_submit():
+    post_id = id
+    comment = form.comment.data
+    print(comment)
+    new_comment = Comment(comment_text= comment,post_id= post_id)
+    new_comment.save_comment()
+    return redirect(url_for('.view_post',id = id))
+
+  title = 'New Comment'
+  return render_template('new_comments.html', title= title, form= form)
+
+
+@main.route('/post/comment/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_comment(id):
+    comment = Comment.query.filter_by(id=id).first()
+    post_id = comment.post_id
+    print(post_id)
+    Comment.delete_comment(id)
+    print(post_id)
+    return redirect(url_for('.view_post',id=post_id))
+
+
+@main.route('/post/view/<int:id>', methods=['GET', 'POST'])
+def view_post(id):
+    test = id
+    print(test)
+    post = Post.query.filter_by(id=id).first()
+    print(post.post_text)
+    comments = Comment.get_comments(id)
+    return render_template('view.html',post=post, comments=comments, id=id)
+
+
+@main.route('/post/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_post(id):  
+    Post.delete_post(id)
+
+    return redirect(url_for('.index'))
+
+
+@main.route('/post/update/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_post(id):
+    post = Post.get_post(id) 
+    form = PostForm()
+  
     if form.validate_on_submit():
-        pitch = Pitch(post=form.post.data,body=form.body.data,category=form.category.data)
-        pitch.save_pitch()
-        return redirect(url_for('main.index'))
-    return render_template('new_pitch.html',form=form) 
+        post.post_title=form.title.data
+        post.post_text=form.post.data
+        post.save_post()
 
-@main.route('/product', methods = ['GET','POST'])
+        return redirect(url_for('.index'))
 
-def product():
-
-    product_pitches=Pitch.query.filter_by(category="PRODUCT")
-
-    
-
-    return render_template('product.html', product_pitches = product_pitches )
-
-@main.route('/interview', methods = ['GET','POST'])
-
-def interview():
-
-    interview_pitches=Pitch.query.filter_by(category="INTERVIEW")
-   
-    return render_template('interview.html', interview_pitches = interview_pitches)    
+    title = 'Update Post'
+    return render_template('new_posts.html', title= title, form= form)
 
 
-
-@main.route('/promotion', methods = ['GET','POST'])
-
-def promotion():
-
-    promotion_pitches=Pitch.query.filter_by(category="PROMOTION")
-   
-    return render_template('promotion.html', promotion_pitches = promotion_pitches)
-
-@main.route('/pitch', methods = ['GET','POST'])
-
-def pitch():
-
-    pitches_interview=Pitch.query.filter_by(category="PICK-UP")
-   
-    return render_template('pitch.html',pitches_interview=pitches_interview)
-
-
-
-
-@main.route('/comment/<int:id>', methods = ['GET','POST'])
-@login_required
-def new_comment(id):   
-    fom = CommentForm()
-    pitch = Pitch.query.get(id)
-    if fom.validate_on_submit():
-        comment = Comment(poster=fom.poster.data,comment=fom.comment.data, pitch=pitch)
-        db.session.add(comment)
+@main.route('/subscribe',methods = ["GET","POST"])
+def subscribe():
+    form = SubscribeForm()
+    if form.validate_on_submit():
+        user = Subscriber(email = form.email.data, username = form.username.data)
+        db.session.add(user)
         db.session.commit()
-    comm = Comment.query.filter_by(pitch=pitch).all()
-    return render_template('comment.html',comm=comm,fom=fom)
-    
+
+        mail_message("Welcome To Peach Blog","email/sub",user.email,user=user)
+
+        return redirect(url_for('.index'))
+    title = "New Subscription"
+    return render_template('subscribe.html',form = form, title= title)
+
 
 @main.route('/user/<uname>')
 def profile(uname):
@@ -90,32 +122,32 @@ def profile(uname):
 
     if user is None:
         abort(404)
+    print(user.id)
+    posts = Post.query.filter_by(user_id=user.id).order_by(Post.post_time.desc()).all()
 
-    return render_template("profile/profile.html", user = user)
+    return render_template('profile/profile.html',user = user,posts=posts)
 
 
-@main.route('/user/<uname>/update',methods = ['GET','POST'])
-@login_required
+@main.route('/user/<uname>/update', methods=['GET', 'POST'])
 def update_profile(uname):
     user = User.query.filter_by(username = uname).first()
     if user is None:
         abort(404)
 
     form = UpdateProfile()
-
+    
     if form.validate_on_submit():
         user.bio = form.bio.data
 
         db.session.add(user)
         db.session.commit()
 
-        return redirect(url_for('.profile',uname=user.username))
+        return redirect(url_for('.profile',uname = user.username))
 
-    return render_template('profile/update.html',form =form)
+    return render_template('profile/update.html',form = form)
+    
 
-
-
-@main.route('/user/<uname>/update/pic',methods= ['POST'])
+@main.route('/user/<uname>/update/pic', methods=['POST'])
 @login_required
 def update_pic(uname):
     user = User.query.filter_by(username = uname).first()

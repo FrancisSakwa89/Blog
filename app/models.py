@@ -9,75 +9,99 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class User(UserMixin,db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer,primary_key = True)
-    username = db.Column(db.String(255))
+    username = db.Column(db.String(255),unique = True)
     email = db.Column(db.String(255),unique = True,index = True)
     bio = db.Column(db.String(255))
     profile_pic_path = db.Column(db.String())
     pass_secure = db.Column(db.String(255))
-    pitches = db.relationship('Pitch',backref = 'pitches',lazy = "dynamic")
-    comments = db.relationship('Comment',backref='comments',lazy="dynamic")
+    posts = db.relationship('Post',backref = 'user',lazy = 'dynamic')
 
+    @property
+    def password(self):
+        raise AttributeError('You cannot read the password attribute')
 
+    @password.setter
+    def password(self, password):
+        self.pass_secure = generate_password_hash(password)
 
-    @property  
-    def password(self): 
-        raise AttributeError('You cannot read the password attribute') 
-
-
-    @password.setter 
-    def password(self, password):   
-        self.pass_secure = generate_password_hash(password)   
-
-    def verify_password(self,password):   
+    def verify_password(self,password):
         return check_password_hash(self.pass_secure,password)
 
     def __repr__(self):
         return f'User {self.username}'
 
 
-class Pitch(UserMixin,db.Model):
+class Post(db.Model):
+    __tablename__ = 'posts'
 
-    __tablename__ = 'pitches'
-
-    id = db.Column(db.Integer, primary_key=True)
-    post = db.Column(db.String(255))
-    body = db.Column(db.String(1000))
-    category = db.Column(db.String(1000))
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    comments = db.relationship('Comment',backref = 'pitch',lazy = "dynamic")
-
+    id = db.Column(db.Integer,primary_key = True)
+    post_category = db.Column(db.String)
+    post_title = db.Column(db.String)
+    post_text = db.Column(db.String)
+    post_time = db.Column(db.DateTime, default = datetime.utcnow)
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+    comments = db.relationship('Comment',backref = 'post',lazy = 'dynamic')
     
-    def save_pitch(self):
+    def save_post(self):
         db.session.add(self)
         db.session.commit()
 
-class Comment(UserMixin,db.Model):
+    @classmethod
+    def get_posts(cls):
+        posts = Post.query.order_by(Post.post_time.desc()).all()
+        return posts
 
+    @classmethod
+    def get_user_posts(cls,user):
+        posts = Post.query.\
+            filter_by(user_id = user).\
+            order_by(Post.post_time).all()
+        return posts
+
+    @classmethod
+    def delete_post(cls,id):
+        post = Post.query.filter_by(id=id).first()
+        db.session.delete(post)
+        db.session.commit()
+
+    @classmethod
+    def get_post(cls,id):
+        post = Post.query.filter_by(id=id).first()
+        return post
+
+
+class Comment(db.Model):
     __tablename__ = 'comments'
 
-    id = db.Column(db.Integer, primary_key=True)
-    poster = db.Column(db.String(255))
-    comment = db.Column(db.String(1000))
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    pitch_id = db.Column(db.Integer, db.ForeignKey("pitches.id"))
-    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
-    
+    id = db.Column(db.Integer,primary_key = True)
+    comment_text = db.Column(db.String)
+    comment_time = db.Column(db.DateTime, default = datetime.utcnow)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
     
     def save_comment(self):
         db.session.add(self)
-        db.session.commit()        
+        db.session.commit()
+
+    @classmethod
+    def get_comments(cls,id):
+        comments = Comment.query.filter_by(post_id = id).all()
+        return  comments
+
+    @classmethod
+    def delete_comment(cls,id):
+        comment = Comment.query.filter_by(id=id).first()
+        db.session.delete(comment)
+        db.session.commit()
 
 
 
-class PhotoProfile(db.Model):
-    __tablename__= 'profile_photos'
+class Subscriber(db.Model):
+    __tablename__ = 'subscribers'
 
     id = db.Column(db.Integer,primary_key = True)
-    pic_path = db.Column(db.String())
-    user_id = db.Column(db.Integer,db.ForeignKey("users.id"))
-   
+    username = db.Column(db.String(255),unique = True)
+    email = db.Column(db.String(255),unique = True,index = True)
