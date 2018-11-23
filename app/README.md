@@ -1,50 +1,42 @@
-# PITCH Game
-## This is an application that allows users to make pitches,comment and view the pitches.Done on 16/11/2018
+# BLOG POST
+## This is an application that allows users to make blogs,comment and view the  available posts.Done on 21/11/2018
 
 
 ## By **[Francis Sakwa](https://github.com/FrancisSakwa89)**
 
 ## Description
- [pitch](https://pitch-5.herokuapp.com/)This is a web application that allows users to submit a pitch. Also, other users are allowed to vote on submitted pitches and leave comments to give their feedback on the pitches. For a user to submit a pitch, vote on a pitch or give feedback on a pitch they need to have an account. <br>
-
-The pitches are organized by categories. Examples of categories: <br> 
-- pickup lines
-- interview pitches
-- product pitches
-- promotion pitches
+ [blog](https://blog-5.herokuapp.com/)This is an application that allows users to make blogs,comment and view the  available posts and also comment on them only after signing in for an account.Users also can subscribe to the website.
 
 ## User Stories
-As a user I would like:
-* to view the different categories
-* to see the pitches other people have posted
-* to submit a pitch in any category
-* to comment on the different pitches and leave feedback
-* to vote on the pitch and give it a downvote or upvote
-
+1. As a user one can view the blog posts submitted
+2. As a user one can comment on blog posts
+3. As a user one can view the most recent posts
+4. As a user one can be alerted when a new post is made by joining a subscription.
+5. As a writer one can sign in to the blog.
+6. As a writer one can create a blog from the application.
+7. As a writer one can delete comments that they find insulting or degrading.
+8. As a writer one can update or delete blogs they have created.
 ## Specifications
 | Behavior        | Input           | Output  |
 | ------------- |:-------------:| -----:|
-| Click On Register | Your email : franco@gmail.com.com <br> Username : franco <br> Password : francis | New user is registered |
+| Click On SignUp | Your email : franco@gmail.com.com <br> Username : franco <br> Password : francis | New user is registered |
 | Sign in/Log in | Your email : franco@gmail.com <br> Password : francis | Signed in |
-| Display pitch categories | Categories display on navbar | List of various pitch categories |
-| See pitches from selected category | **Click** a category | Navigates to the selected category |
-| Create a pitch | **Click On Time To pitch** | The authenticated user is navigated to the pitch form to fill in |
-| Comment on a pitch | **Click Comment** | User navigates to the comment form  |
+| View posts | Displays on home page | List of available posts |
+| View comments | **Click** a view button | Navigates to the selected post |
+| Create a post | **Click On Add a Blog Post** | The authenticated user is navigated to the blog form to fill in |
+| Comment on a post | **Click Comment** | User navigates to the comment form  |
 
 ## Setup/Installation Requirements
 
-* Click [Pitch](https://pitch-5.herokuapp.com/) <br/>
+* Click [Blog](https://blog-5.herokuapp.com/) <br/>
   or <br/>
-* Copy [Pitch ](https://pitch-5.herokuapp.com/) and  Paste the link on your prefered browser
+* Copy [Blog ](https://blog-5.herokuapp.com/) and  Paste the link on your prefered browser
 
 _*This requires internet connection._*
 
 # Running Tests
 * python3.6 manage.py test
 
-## Known Bugs
-
-- Unable to make vote counts
 
 
 ## Technologies Used
