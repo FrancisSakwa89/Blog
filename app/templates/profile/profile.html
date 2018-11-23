@@ -6,13 +6,13 @@ background: linear-gradient(to right, #232526, #414345); ">
 <div class="row">
 <!-- displaying  Username-->
   <div class="col-md-4">
-    <h3 style="text-decoration-style: underline;"> {{user.username| capitalize}} </h3>
+    <h3 style="text-decoration-style: underline; color: whitesmoke"> {{user.username| capitalize}} </h3>
 
     <!--Displaying user bio-->
     {% if user.bio %}
-      <p> {{user.bio}}</p>
+      <p style="color: whitesmoke"> {{user.bio}}</p>
     {%else%}
-      <p> {{user.username| capitalize}} has no bio </p>
+      <p style="color: white"> {{user.username| capitalize}} has no bio </p>
     {% endif %}
     {% if user == current_user %}
     <a href="{{url_for('main.update_profile',uname=user.username)}}" style="color: green">Edit profile</a>

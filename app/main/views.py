@@ -10,7 +10,7 @@ from .. email import mail_message
 @main.route('/')
 def index():
   
-  title = 'Home - Welcome to Peach Blog'
+  title = 'Home - Welcome to Blog Post'
   posts = Post.get_posts()
 
   return render_template('index.html', title = title, posts = posts)
