@@ -30,7 +30,7 @@ def new_post():
     users = Subscriber.query.all()
     for user in users:
         print(user.email)
-        mail_message("New Post on Peach Blog","email/sub_alert",user.email,user=user)  
+        mail_message("New Post on the Blog","email/sub_alert",user.email,user=user)  
 
     return redirect(url_for('.index'))
 
