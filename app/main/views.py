@@ -109,7 +109,7 @@ def subscribe():
         db.session.add(user)
         db.session.commit()
 
-        mail_message("Welcome To Peach Blog","email/sub",user.email,user=user)
+        mail_message("Welcome To Blog post","email/sub",user.email,user=user)
 
         return redirect(url_for('.index'))
     title = "New Subscription"

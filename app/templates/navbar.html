@@ -24,9 +24,10 @@
                 <li class="pro"><a href="{{url_for('main.profile',uname=current_user.username)}}"><H3>profile</H3></a></li>
                 <li><a href="{{url_for('auth.logout')}}"><H3>Sign out</H3></a></li>
                 {% else %}
+                <li><a href="{{url_for('main.subscribe')}}"><h3>Subscribe</h3></a></li>
+
                 <li><a href="{{url_for('auth.register')}}"><H3>Sign Up</H3></a></li>
                 <li><a href="{{url_for('auth.login')}}"><H3>Sign in</H3></a></li>
-                <li><a href="{{url_for('main.subscribe')}}">Subscribe</a></li>
 
                 {%endif%}
               </ul>
